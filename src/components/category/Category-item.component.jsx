@@ -15,6 +15,7 @@ function CategoryItem(props) {
         <h2>{title}</h2>
         <p>Shop Now</p>
         <h1>gygy</h1>
+        <p>Hrllop</p>
       </div>
     </div>
   );
