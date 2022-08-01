@@ -1,25 +1,39 @@
-import React, { Fragment } from "react";
+import userEvent from "@testing-library/user-event";
+import React, { Fragment, useContext } from "react";
+import "./Nvigation.styles.scss";
 import { Outlet, Link } from "react-router-dom";
 import { ReactComponent as CrownLogo } from "../../assets/Crown.svg";
-function Navigation() {
+import { UserContext } from "../../contexts/user.context";
+import { signOutUser } from "../../utils/firebase/Firebase.utils";
+
+const Navigation = () => {
+  const { currentUser } = useContext(UserContext);
+
   return (
     <Fragment>
       <div className="navigation">
         <Link className="logo-container" to="/">
-          <CrownLogo />
+          <CrownLogo className="logo" />
         </Link>
-        <div className="nav-link-container">
+        <div className="nav-links-container">
           <Link className="nav-link" to="/shop">
-            <div>shop</div>
+            SHOP
           </Link>
-          <Link className="nav-link" to="/sign-in">
-            Sign In
-          </Link>
+
+          {currentUser ? (
+            <span className="nav-link" onClick={signOutUser}>
+              SIGN OUT
+            </span>
+          ) : (
+            <Link className="nav-link" to="/auth">
+              SIGN IN
+            </Link>
+          )}
         </div>
       </div>
       <Outlet />
     </Fragment>
   );
-}
+};
 
 export default Navigation;

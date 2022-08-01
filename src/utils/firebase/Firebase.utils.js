@@ -4,6 +4,10 @@ import {
   signInWithRedirect,
   signInWithPopup,
   GoogleAuthProvider,
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  signOut,
+  onAuthStateChanged,
 } from "firebase/auth";
 import { getFirestore, doc, getDoc, setDoc } from "firebase/firestore";
 
@@ -15,22 +19,42 @@ const firebaseConfig = {
   messagingSenderId: "516808798496",
   appId: "1:516808798496:web:dafde33506924e5e772745",
 };
-
+//initializing firebase apk
 const firebaseApp = initializeApp(firebaseConfig);
-const provider = new GoogleAuthProvider();
-provider.setCustomParameters({
+
+//getting google provider
+const googleProvider = new GoogleAuthProvider();
+
+googleProvider.setCustomParameters({
   prompt: "select_account",
 });
-export const auth = getAuth();
-export const signInWithGooglePopup = () => signInWithPopup(auth, provider);
-export const db = getFirestore();
-export const createUserDocumentFromAuth = async (userAuth) => {
-  const userDocRef = doc(db, "user", userAuth.uid);
-  console.log(userDocRef);
 
+//generating Auth
+export const auth = getAuth();
+//Sign in with popup method with google provider passing value of google provider we created and auth generated
+export const signInWithGooglePopup = () =>
+  signInWithPopup(auth, googleProvider);
+//Singin with redirect method
+export const signInWithGoogleRedirect = () =>
+  signInWithRedirect(auth, googleProvider);
+//creating database from firestore
+export const db = getFirestore();
+
+//create method and we recive userAuth from firebase
+
+export const createUserDocumentFromAuth = async (
+  userAuth,
+  additionalInformation = {}
+) => {
+  if (!userAuth) return;
+  //doc first take database,then second argument will be collection
+  const userDocRef = doc(db, "user", userAuth.uid);
+
+  //console.log(userDocRef);
+  //get the document for our userSnapshot
   const userSnapshot = await getDoc(userDocRef);
-  console.log(userSnapshot);
-  console.log(userSnapshot.exists());
+  //console.log(userSnapshot);
+  //console.log(userSnapshot.exists());
 
   if (!userSnapshot.exists()) {
     const { displayName, email } = userAuth;
@@ -41,10 +65,30 @@ export const createUserDocumentFromAuth = async (userAuth) => {
         displayName,
         email,
         createdAt,
+        ...additionalInformation,
       });
     } catch (err) {
-      console.log(err.message);
+      if (err.code === "auth/email-already-in-use") {
+        alert("Cannot create user,email already in use");
+      } else {
+        console.log(err.message);
+      }
     }
   }
   return userDocRef;
 };
+export const createAuthUserWithEmailAndPassword = async (email, password) => {
+  if (!email || !password) return;
+
+  return await createUserWithEmailAndPassword(auth, email, password);
+};
+
+export const signInAuthUserWithEmailAndPassword = async (email, password) => {
+  if (!email || !password) return;
+
+  return await signInWithEmailAndPassword(auth, email, password);
+};
+export const signOutUser = async () => await signOut(auth);
+//whenEver you instiate the function you have to give me a callback
+export const onAuthStateChangedListener = (callback) =>
+  onAuthStateChanged(auth, callback);
